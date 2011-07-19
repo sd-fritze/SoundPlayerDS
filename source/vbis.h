@@ -3,7 +3,7 @@
 
 #include <nds.h>
 #include <maxmod9.h>
-#include <tremor/ivorbisfile.h>
+#include <ivorbisfile.h>
 #include "soundPlayer.h"
 
 int	vbis_openFile(char * name);

@@ -1,3 +1,0 @@
-cp faad2-2.7/common/mp4ff/mp4ff.h
-cp faad2-2.7/common/mp4ff/mp4ffint.h
-cp faad2-2.7/common/mp4ff/mp4ff_int_types.h
