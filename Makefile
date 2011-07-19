@@ -51,7 +51,7 @@ LIBS	:= 	-lmp4ff -lhelixaac -lmm9 -lvorbisidec -lfilesystem -lfat -lnds9
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)  $(CURDIR)/sndlibs
+LIBDIRS	:=	$(LIBNDS)  $(CURDIR)/sndlibs $(PORTLIBS)
  
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
