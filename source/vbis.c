@@ -38,6 +38,7 @@ mm_word vbis_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats 
 				iprintf("Decoding error occured, playback stopped\n");
 			ov_clear(&vf);
 			needsClosing = true;
+			return 0;
 		}
 		tlength -= ret/4;
 		target +=ret/2;		// we increase a s16 pointer so half the byte size
