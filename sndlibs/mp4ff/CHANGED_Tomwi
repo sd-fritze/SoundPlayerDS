@@ -1,0 +1,3 @@
+16th july 2011:
+
+removed static function declarations to remove compiler warnings (mp4ffint.h)
