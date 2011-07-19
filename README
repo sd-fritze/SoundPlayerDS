@@ -1,1 +1,5 @@
 Sound Player for the DS(i)
+compiling:
+-first compile sndlibs by cd'ing to sndlibs/ typing make 
+-(Still in sndlibs) type make move, to move the libs in the right place
+-go to the root and type make, a nds file should be there if everything went allright
