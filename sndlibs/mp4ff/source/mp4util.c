@@ -30,8 +30,9 @@
 
 #include "mp4ffint.h"
 #include <stdlib.h>
+#include <string.h>
 
-int32_t mp4ff_read_data(mp4ff_t *f, int8_t *data, uint32_t size)
+int32_t mp4ff_read_data(mp4ff_t *f, uint8_t *data, uint32_t size)
 {
     int32_t result = 1;
 
@@ -47,7 +48,7 @@ int32_t mp4ff_truncate(mp4ff_t * f)
 	return f->stream->truncate(f->stream->user_data);
 }
 
-int32_t mp4ff_write_data(mp4ff_t *f, int8_t *data, uint32_t size)
+int32_t mp4ff_write_data(mp4ff_t *f, uint8_t *data, uint32_t size)
 {
     int32_t result = 1;
 
@@ -60,15 +61,15 @@ int32_t mp4ff_write_data(mp4ff_t *f, int8_t *data, uint32_t size)
 
 int32_t mp4ff_write_int32(mp4ff_t *f,const uint32_t data)
 {
-	uint32_t result;
+    uint32_t result;
     uint32_t a, b, c, d;
-    int8_t temp[4];
+    uint8_t temp[4];
     
-    *(uint32_t*)temp = data;
-    a = (uint8_t)temp[0];
-    b = (uint8_t)temp[1];
-    c = (uint8_t)temp[2];
-    d = (uint8_t)temp[3];
+    memcpy(temp, &data, sizeof(temp));
+    a = temp[0];
+    b = temp[1];
+    c = temp[2];
+    d = temp[3];
 
     result = (a<<24) | (b<<16) | (c<<8) | d;
 
@@ -108,13 +109,13 @@ uint32_t mp4ff_read_int32(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b, c, d;
-    int8_t data[4];
+    uint8_t data[4];
     
     mp4ff_read_data(f, data, 4);
-    a = (uint8_t)data[0];
-    b = (uint8_t)data[1];
-    c = (uint8_t)data[2];
-    d = (uint8_t)data[3];
+    a = data[0];
+    b = data[1];
+    c = data[2];
+    d = data[3];
 
     result = (a<<24) | (b<<16) | (c<<8) | d;
     return (uint32_t)result;
@@ -124,12 +125,12 @@ uint32_t mp4ff_read_int24(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b, c;
-    int8_t data[4];
+    uint8_t data[4];
     
     mp4ff_read_data(f, data, 3);
-    a = (uint8_t)data[0];
-    b = (uint8_t)data[1];
-    c = (uint8_t)data[2];
+    a = data[0];
+    b = data[1];
+    c = data[2];
 
     result = (a<<16) | (b<<8) | c;
     return (uint32_t)result;
@@ -139,11 +140,11 @@ uint16_t mp4ff_read_int16(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b;
-    int8_t data[2];
+    uint8_t data[2];
     
     mp4ff_read_data(f, data, 2);
-    a = (uint8_t)data[0];
-    b = (uint8_t)data[1];
+    a = data[0];
+    b = data[1];
 
     result = (a<<8) | b;
     return (uint16_t)result;
@@ -151,20 +152,20 @@ uint16_t mp4ff_read_int16(mp4ff_t *f)
 
 char * mp4ff_read_string(mp4ff_t * f,uint32_t length)
 {
-	char * str = (char*)malloc(length + 1);
-	if (str!=0)
-	{
-		if ((uint32_t)mp4ff_read_data(f,str,length)!=length)
-		{
-			free(str);
-			str = 0;
-		}
-		else
-		{
-			str[length] = 0;
-		}
-	}
-	return str;	
+    uint8_t * str = (uint8_t*)malloc(length + 1);
+    if (str!=0)
+    {
+        if ((uint32_t)mp4ff_read_data(f,str,length)!=length)
+        {
+            free(str);
+            str = 0;
+        }
+        else
+        {
+            str[length] = 0;
+        }
+    }
+    return (char*)str;
 }
 
 uint8_t mp4ff_read_char(mp4ff_t *f)

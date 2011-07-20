@@ -46,15 +46,15 @@
 #define       COPYRIGHT_SYMBOL        ((int8_t)0xA9)
 
 /* parse atom header size */
-static int32_t mp4ff_atom_get_size(const int8_t *data)
+static uint32_t mp4ff_atom_get_size(const uint8_t *data)
 {
     uint32_t result;
     uint32_t a, b, c, d;
 
-    a = (uint8_t)data[0];
-    b = (uint8_t)data[1];
-    c = (uint8_t)data[2];
-    d = (uint8_t)data[3];
+    a = data[0];
+    b = data[1];
+    c = data[2];
+    d = data[3];
 
     result = (a<<24) | (b<<16) | (c<<8) | d;
     //if (result > 0 && result < 8) result = 8;
@@ -233,7 +233,7 @@ uint64_t mp4ff_atom_read_header(mp4ff_t *f, uint8_t *atom_type, uint8_t *header_
 {
     uint64_t size;
     int32_t ret;
-    int8_t atom_header[8];
+    uint8_t atom_header[8];
 
     ret = mp4ff_read_data(f, atom_header, 8);
     if (ret != 8)

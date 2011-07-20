@@ -25,7 +25,7 @@ int main(int argc, char ** argv) {
 	gluPerspective(70, 256.0 / 192.0, 0.1, 100);
  
 	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE);
-gluLookAt(	0.0, 0.0, 1.0,		//camera possition 
+	gluLookAt(	0.0, 0.0, 1.0,		//camera possition 
 				0.0, 0.0, 0.0,		//look at
 				0.0, 1.0, 0.0);		//up
 

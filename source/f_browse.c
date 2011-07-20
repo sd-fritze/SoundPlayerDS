@@ -16,23 +16,21 @@ MUSIC musik;
 void cacheDir(char * path) {
 	DIR *pdir;
 	struct dirent *pent;
-	struct stat statbuf;
 
 	pdir=opendir(path);
 
 	if (pdir) {
 		int i = 0;
 		while ((pent=readdir(pdir))!=NULL) {
-			stat(pent->d_name,&statbuf);
-
 			if(strcmp(".", pent->d_name) == 0 || strcmp("..", pent->d_name) == 0)
 				continue;
 
 			if(strstr(pent->d_name, ".m4a") || strstr(pent->d_name, ".M4A") || strstr(pent->d_name, ".ogg") || 
 				strstr(pent->d_name, ".OGG") || strstr(pent->d_name, ".aac")) {
-				strcpy(dirEntries[i], pent->d_name);
+				strncpy(dirEntries[i], pent->d_name, 31);
+				dirEntries[i][31] = 0;
 				entries++;
-				iprintf("%s\n", dirEntries[i]);
+				iprintf("%s%s\n", i?" ":"*", dirEntries[i]);
 				i++;
 			}
 		}
@@ -50,9 +48,7 @@ void updateBrowser(void) {
 			cursor--;
 		int i;
 		for(i=0; i<entries; i++) {
-			if(i == cursor)
-				iprintf("*");
-			iprintf("%s\n", dirEntries[i]);
+			iprintf("%s%s\n", i==cursor?"*":" ", dirEntries[i]);
 		}
 		if(keys & KEY_A) {
 			if(playing)
@@ -94,3 +90,4 @@ void updateBrowser(void) {
 	}
 
 }
+
