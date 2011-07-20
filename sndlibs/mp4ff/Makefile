@@ -31,7 +31,7 @@ CFLAGS	:=	-g -Wall -O2\
 		-fomit-frame-pointer -ffast-math \
 		$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM9 -DUSE_DEFAULT_STDLIB -save-temps
+CFLAGS	+=	$(INCLUDE) -DARM9 -DUSE_DEFAULT_STDLIB 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s

@@ -1,0 +1,10 @@
+
+# Compiled source
+###################
+*.d
+*.i
+*.o
+*.map
+*.a
+*.nds
+*.elf

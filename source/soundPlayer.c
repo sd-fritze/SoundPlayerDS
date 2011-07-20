@@ -1,5 +1,6 @@
 #include <nds.h>
 #include <maxmod9.h>
+#include <stdio.h>
 #include "soundPlayer.h"
 
 bool needsClosing = false;
@@ -18,16 +19,21 @@ void InitMaxmod(void) {
  */
 void startStream(MUSIC * m, char * name, int bufferlength) {
 	if(m->open_file(name) == 0) {
-		m->mstream.format = ( m->get_nChannels() < 2? MM_STREAM_16BIT_MONO : MM_STREAM_16BIT_STEREO);
-		m->mstream.sampling_rate = m->get_sampleRate();
-		m->mstream.buffer_length = bufferlength;// buffer length
-		m->mstream.timer	= MM_TIMER0;		// use hardware timer 0
-		m->mstream.manual	= true;				// use manual filling
-		mmStreamOpen(&m->mstream);
+		if(m->get_nChannels()<3) {
+			m->mstream.format = ( m->get_nChannels() < 2? MM_STREAM_16BIT_MONO : MM_STREAM_16BIT_STEREO);
+			m->mstream.sampling_rate = m->get_sampleRate();
+			m->mstream.buffer_length = bufferlength;// buffer length
+			m->mstream.timer	= MM_TIMER0;		// use hardware timer 0
+			m->mstream.manual	= true;				// use manual filling
+			mmStreamOpen(&m->mstream);
+		} else {
+			iprintf("Channelcount too high!\n");
+		}
 	}
-
 }
-
+/*
+ * Todo: adjust for mono, this one is only correct for stereo
+ */
 void visualizeBuffer(s16 * buffer) {
 
 	glBegin(GL_TRIANGLE_STRIP);

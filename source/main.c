@@ -41,6 +41,7 @@ gluLookAt(	0.0, 0.0, 1.0,		//camera possition
 		if(playing)
 		{
 			mmStreamUpdate();
+			/* Right after needsClosing can be set to false */
 			if(needsClosing)
 			{
 				needsClosing = false;
