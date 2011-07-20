@@ -1,6 +1,14 @@
 Sound Player for the DS(i)
-compiling:
--first compile sndlibs by cd'ing to sndlibs/ typing make 
--(Still in sndlibs) type make move, to move the libs in the right place
--install the tremor-lowmem arm portlib, see http://devkitpro.org/wiki/portlibs
--go to the root and type make, a nds file should be there if everything went allright
+
+Requirements:
+
+ - devkitPro           http://sourceforge.net/projects/devkitpro/files
+ - devkitARM           http://sourceforge.net/projects/devkitpro/files/devkitARM
+ - libnds              http://sourceforge.net/projects/devkitpro/files/libnds
+ - tremor-lowmem-arm   http://sourceforge.net/projects/devkitpro/files/portlibs
+
+Make targets:
+
+ all:     Builds sound libraries and NDS executable
+ clean:   Removes everything in 'build' directory and the resulting NDS and ELF files
+ clobber: Same as clean, but additionally performs 'make clean' on sound libraries
