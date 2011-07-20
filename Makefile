@@ -51,7 +51,7 @@ LIBS	:= 	-lmp4ff -lhelixaac -lmm9 -lvorbisidec -lfilesystem -lfat -lnds9
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)  $(CURDIR)/sndlibs $(PORTLIBS)
+LIBDIRS	:=	$(LIBNDS)  $(dir $(wildcard $(CURDIR)/sndlibs/*/include)) $(PORTLIBS)
  
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -112,16 +112,23 @@ else
 	endif
 endif
  
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean clobber
  
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
+	@make --no-print-directory -C $(CURDIR)/sndlibs -f $(CURDIR)/sndlibs/Makefile
 	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
  
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds
+
+#---------------------------------------------------------------------------------
+clobber:
+	@echo clobber ...
+	@make --no-print-directory -C $(CURDIR)/sndlibs -f $(CURDIR)/sndlibs/Makefile clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds
 
 #---------------------------------------------------------------------------------
