@@ -33,7 +33,6 @@ int main(int argc, char ** argv) {
 	//nitroFSInit();
 	fatInitDefault();
 	InitMaxmod();
-	cacheDir("/");
 	while(1) {
 		scanKeys();
 		updateBrowser();

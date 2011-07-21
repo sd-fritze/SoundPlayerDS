@@ -51,7 +51,7 @@ LIBS	:= 	-lmp4ff -lhelix -lmm9 -lvorbisidec -lfilesystem -lfat -lnds9
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)  $(dir $(wildcard $(CURDIR)/sndlibs/*/include)) $(PORTLIBS)
+LIBDIRS	:=	$(LIBNDS)  $(patsubst %/,%,$(dir $(wildcard $(CURDIR)/sndlibs/*/include))) $(PORTLIBS)
  
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

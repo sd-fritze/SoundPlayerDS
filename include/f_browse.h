@@ -10,7 +10,6 @@
 
 extern bool playing;
 extern MUSIC musik;
-void cacheDir(char * path);
 void updateBrowser(void);
 
 #endif
