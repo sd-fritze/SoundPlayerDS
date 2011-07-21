@@ -3,10 +3,13 @@
 
 #include <nds.h>
 #include <maxmod9.h>
+#include <stdio.h>
 
 #define FILE_ERROR 1
 #define MAX_VOLUME 127
+#define MM_BUFFER_SIZE 8192
 
+extern FILE * sndFile;
 extern bool needsClosing;
 
 typedef struct 

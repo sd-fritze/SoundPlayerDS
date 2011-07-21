@@ -30,8 +30,8 @@ int main(int argc, char ** argv) {
 				0.0, 1.0, 0.0);		//up
 
 	consoleDemoInit();
-	nitroFSInit();
-	//fatInitDefault();
+	//nitroFSInit();
+	fatInitDefault();
 	InitMaxmod();
 	cacheDir("/");
 	while(1) {

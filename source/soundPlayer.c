@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "soundPlayer.h"
 
+FILE * sndFile;
 bool needsClosing = false;
 // fast fourier transformation
 void InitMaxmod(void) {
