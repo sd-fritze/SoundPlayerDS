@@ -6,6 +6,7 @@ Requirements:
  - devkitARM           http://sourceforge.net/projects/devkitpro/files/devkitARM
  - libnds              http://sourceforge.net/projects/devkitpro/files/libnds
  - tremor-lowmem-arm   http://sourceforge.net/projects/devkitpro/files/portlibs
+ - libhelix 	       http://sourceforge.net/projects/devkitpro/files/portlibs
 
 Make targets:
 
