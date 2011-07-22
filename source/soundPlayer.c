@@ -2,9 +2,14 @@
 #include <maxmod9.h>
 #include <stdio.h>
 #include "soundPlayer.h"
+#include "f_browse.h"
 
 FILE * sndFile;
-bool needsClosing = false;
+bool needsClosing;
+unsigned char * readOff;
+int dataLeft;
+short Endof; // samples to endof
+
 // fast fourier transformation
 void InitMaxmod(void) {
 	mm_ds_system sys;
@@ -30,6 +35,12 @@ void startStream(MUSIC * m, char * name, int bufferlength) {
 		} else {
 			iprintf("Channelcount too high!\n");
 		}
+	}
+	/* be sure to reset everything */
+	else {
+		iprintf("Failed to play %s\n", name);
+		m->free_decoder();
+		playing = false;
 	}
 }
 /*

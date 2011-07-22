@@ -3,7 +3,6 @@
 
 #include <nds.h>
 #include <mp4ff.h>
-#include <helix/aacdec.h>
 #include "soundPlayer.h"
 
 #define MP4_TRACK_AUDIO 1

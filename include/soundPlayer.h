@@ -11,6 +11,9 @@
 
 extern FILE * sndFile;
 extern bool needsClosing;
+extern unsigned char * readOff;
+extern int dataLeft;
+extern short Endof; // samples to endof
 
 typedef struct 
 {

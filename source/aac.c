@@ -6,17 +6,16 @@
 * 	aac decoder source
 */
 #include <nds.h>
-
+#include <helix/aacdec.h>
+#include <helix/aaccommon.h>
 #include "aac.h"
 #include "soundPlayer.h"
+#include "decoder_common.h"
 
 /* Helix variabelen*/
 HAACDecoder * decoder;
 AACFrameInfo inf;
 unsigned char readBuffer[AAC_MAINBUF_SIZE];
-unsigned char * readOff;
-int dataLeft;
-short Endof; // samples to endof
 
 /* MP4ff variabelen */
 int trackSample;
@@ -49,81 +48,46 @@ int findAudioTrack(mp4ff_t * f) {
  * Output	: 	1 if succesful -1 if not
  */
 int mp4_openFile(char * name) {
-
 	if((sndFile = fopen(name, "rb"))) {
 		mp4cb.user_data = sndFile;
-		/* Open mp4 file and loop through all atoms */
-		infile = mp4ff_open_read(&mp4cb);
-		if (!infile) {
-			iprintf("Error opening file: %s\n", name);
-			return -1;
+		if((infile = mp4ff_open_read(&mp4cb))) {
+			if ((track = findAudioTrack(infile)) >= 0) {
+				/* Decoder failed to initialize */
+				if((decoder = AACInitDecoder())) {
+					/* Decoder should be updated to decode raw blocks in the mp4 */
+					inf.sampRateCore = mp4ff_get_sample_rate(infile, track);
+					inf.nChans = mp4ff_get_channel_count(infile,track);
+					/* AACSetRawBlockParams will fail if not set */
+					inf.profile = AAC_PROFILE_LC;
+					samples = mp4ff_num_samples(infile, track);
+					if(!AACSetRawBlockParams(decoder, 0, &inf))
+						return 0;
+				}
+			}
 		}
-		if ((track = findAudioTrack(infile)) < 0) {
-			iprintf("An audio track couldn't be found in this MP4\n");
-			mp4ff_close(infile);
-			fclose(sndFile);
-			return -1;
-		}
-		/* Decoder failed to initialize */
-		if(!(decoder = AACInitDecoder()))
-			return -1;
-		/* Decoder should be updated to decode raw blocks in the mp4 */
-		inf.sampRateCore = mp4ff_get_sample_rate(infile, track);
-		inf.nChans = mp4ff_get_channel_count(infile,track);
-		/* AACSetRawBlockParams will fail if not set */
-		inf.profile = AAC_PROFILE_LC;
-		samples = mp4ff_num_samples(infile, track);
-		if(AACSetRawBlockParams(decoder, 0, &inf))
-			return -1;
-		return 0;
 	}
 	return -1;	/* sndFile == NULL */
-};
+}
 
 int aac_openFile(char * name) {
-	memset(&inf, 0, sizeof(AACFrameInfo));
+	readOff = readBuffer;
 	if((sndFile = fopen(name, "rb"))) {
-		/* Init decoder */
-		if(!(decoder = AACInitDecoder()))//
-			return -1;
-		/* Decode one frame to get inf about the aac, otherwhise
-		 * get_sampleRate etc will return the wrong values.
-		 * Todo: check support for ADIF headers
-		 */
-		unsigned char * off = malloc(8);
-		int left = fread(off, 1, 8, sndFile);
-		/*
-		if(IS_ADIF(off)) {
-
-			// 4 bytes are read already 
-			int toread = sizeof(ADIFHeader)-4;
-			// Copybit not set, no copyright ID of 72 bytes following 
-			if(!off[4])
-				toread -= ADIF_COPYID_SIZE;
-			//Including previous read bytes 
-			unsigned char * more = realloc(off, toread + 8);
-			if(!more) {
-				free(off);
-				return -1;
+		if((decoder = AACInitDecoder())) {
+			if(fill_readBuffer(readBuffer, &readOff, AAC_MAINBUF_SIZE, &dataLeft) == AAC_MAINBUF_SIZE) {
+				int ret = 0;
+				int bitOffset = 0, bitsAvail = dataLeft << 3;
+				if(IS_ADIF(readBuffer))
+					ret = UnpackADIFHeader((AACDecInfo*)decoder, &readOff, &bitOffset, &bitsAvail);
+				else
+					ret = UnpackADTSHeader((AACDecInfo*)decoder, &readOff, &bitOffset, &bitsAvail);
+				if(!ret) {
+					AACGetLastFrameInfo(decoder, &inf);
+					readOff = readBuffer;
+					dataLeft = AAC_MAINBUF_SIZE;
+					return 0;
+				}
 			}
-			fread((off+8), 1, toread, sndFile);
-			int numPCE = off[11 + ADIF_COPYID_SIZE*off[0]]+1;
-
-			more = realloc(off, toread + 8 + numPCE * sizeof(ProgConfigElement));
-			if(!more) {
-				free(off);
-				return -1;
-			}
-			off = more;
-			fread(off + toread + 8, 1, numPCE * sizeof(ProgConfigElement), sndFile);
 		}
-		*/
-		AACDecode(decoder, &off, &left, (short*)readBuffer);
-		AACGetLastFrameInfo(decoder, &inf);
-		free(off);
-		rewind(sndFile);
-
-		return 0;
 	}
 	return -1;	/* sndFile == NULL */
 }
@@ -146,6 +110,7 @@ void aac_freeDecoder(void) {
 	Endof = 0;
 	trackSample = 0;
 	AACFreeDecoder(decoder);
+	memset(&inf, 0, sizeof(AACFrameInfo));
 	fclose(sndFile);
 }
 
@@ -181,38 +146,15 @@ mm_word mp4_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 	return decoded;
 }
 
-static int refill_readBuffer(void) {
-	/* Move the already present data to begin */
-	memmove(&readBuffer, readOff, dataLeft);
-	/* decoding will now start at the beginning */
-	readOff = (unsigned char*)&readBuffer;
-	/* Read enough to get a fresh complete filled buffer */
-	int read = fread(&readBuffer[dataLeft], 1, AAC_MAINBUF_SIZE - dataLeft,sndFile);
-	if(read != (AAC_MAINBUF_SIZE-dataLeft)) {
-		if(feof(sndFile) && !Endof) {
-			dataLeft+=read;
-			return read;
-		}
-		return 0;
-	}
-	dataLeft+=read;
-	return read;
-}
-
 mm_word aac_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats format ) {
 	int decoded = 0;
 
-	/* We'll always output 1024 samples, so length should be at least 1024
-	 * so that we won't corrupt any data in maxmods pcm buffer
-	 */
+	/* AACDecode will always output 1024 samples per channel */
 	if(length >=1024) {
 		int ret = 1;
-		/* really needed, checking for underruns only won't work:
-		* in some cases dataLeft will be <4, and so you don't have a complete
-		* (ADTS)header resulting in decoder errors
-		*/
-		if(dataLeft < AAC_MAINBUF_SIZE * inf.nChans)
-			ret = refill_readBuffer();
+		/* At least the size of the header should be buffered */
+		if(dataLeft < AAC_MAINBUF_SIZE)
+			ret = fill_readBuffer(readBuffer, &readOff, AAC_MAINBUF_SIZE, &dataLeft);
 
 		if(!ret && dataLeft == 0) {
 			/* No more to read, still able to decode something more */
@@ -233,13 +175,8 @@ mm_word aac_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 			needsClosing = true;
 			return 0;
 		}
-		
-		dest+=1024*inf.nChans;
 		decoded +=1024;
-		length -=1024;
 	}
-
 	visualizeBuffer(dest);
-
 	return decoded;
 }
