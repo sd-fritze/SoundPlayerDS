@@ -15,7 +15,6 @@
 /* Helix variabelen*/
 HAACDecoder * decoder;
 AACFrameInfo inf;
-unsigned char readBuffer[AAC_MAINBUF_SIZE];
 
 /* MP4ff variabelen */
 int trackSample;
@@ -73,7 +72,7 @@ int aac_openFile(char * name) {
 	readOff = readBuffer;
 	if((sndFile = fopen(name, "rb"))) {
 		if((decoder = AACInitDecoder())) {
-			if(fill_readBuffer(readBuffer, &readOff, AAC_MAINBUF_SIZE, &dataLeft) == AAC_MAINBUF_SIZE) {
+			if(fill_readBuffer(readBuffer, &readOff, READ_BUF_SIZE, &dataLeft) == READ_BUF_SIZE) {
 				int ret = 0;
 				int bitOffset = 0, bitsAvail = dataLeft << 3;
 				if(IS_ADIF(readBuffer))
@@ -83,7 +82,7 @@ int aac_openFile(char * name) {
 				if(!ret) {
 					AACGetLastFrameInfo(decoder, &inf);
 					readOff = readBuffer;
-					dataLeft = AAC_MAINBUF_SIZE;
+					dataLeft = READ_BUF_SIZE;
 					return 0;
 				}
 			}
@@ -156,7 +155,7 @@ mm_word aac_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 		if(dataLeft < AAC_MAINBUF_SIZE)
 			ret = fill_readBuffer(readBuffer, &readOff, AAC_MAINBUF_SIZE, &dataLeft);
 
-		if(!ret && dataLeft == 0) {
+		if(dataLeft != AAC_MAINBUF_SIZE && dataLeft == 0) {
 			/* No more to read, still able to decode something more */
 			if(feof(sndFile) && !Endof)
 				Endof = MM_BUFFER_SIZE;

@@ -4,6 +4,7 @@
 #include "vbis.h"
 #include "mp4ff.h"
 #include "aac.h"
+#include "mp3.h"
 #include "soundPlayer.h"
 
 #define DECODER_AAC	1
@@ -32,7 +33,9 @@ static int dirFilter(const struct dirent *dent)
 	    || strstr(dent->d_name, ".ogg")	//include ogg
 	    || strstr(dent->d_name, ".OGG")	//include OGG
 	    || strstr(dent->d_name, ".aac")	//include aac
-	    || strstr(dent->d_name, ".AAC"); //include AAC
+	    || strstr(dent->d_name, ".AAC") //include AAC
+		|| strstr(dent->d_name, ".mp3") //include mp3
+		|| strstr(dent->d_name, ".MP3");//include MP3 
 }
 
 static int dirCompare(const struct dirent **dent1, const struct dirent **dent2)
@@ -229,6 +232,14 @@ void updateBrowser(void)
 					musik.get_nChannels    = vbis_get_nChannels;
 					musik.free_decoder     = vbis_freeDecoder;
 					musik.mstream.callback = vbis_on_stream_request;
+				}
+				else if(strstr(dirList[cursor]->d_name, ".mp3") || strstr(dirList[cursor]->d_name, ".MP3"))
+				{
+					musik.open_file        = mp3_openFile;
+					musik.get_sampleRate   = mp3_get_sampleRate;
+					musik.get_nChannels    = mp3_get_nChannels;
+					musik.free_decoder     = mp3_freeDecoder;
+					musik.mstream.callback = mp3_on_stream_request;
 				}
 				else
 					musik.open_file = NULL;

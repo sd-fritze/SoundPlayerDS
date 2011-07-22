@@ -6,6 +6,7 @@
 
 FILE * sndFile;
 bool needsClosing;
+unsigned char readBuffer[READ_BUF_SIZE];
 unsigned char * readOff;
 int dataLeft;
 short Endof; // samples to endof
