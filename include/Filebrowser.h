@@ -6,10 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include "soundPlayer.h"
+#include "sound/SoundPlayer.h"
 
+extern int y;
 extern bool playing;
 extern MUSIC musik;
+extern u32 * dirDispList, fileDispList;
+extern int IconsTextID;
 void updateBrowser(void);
+void openSelected(int selected);
 
-#endif
+#endif /* F_BROWSER_H */

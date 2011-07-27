@@ -18,9 +18,8 @@ void parseID3_V2(FILE * fp) {
 	fread(&size, 1, 4, fp);
 	int hdrsize =  size[0]<<21|size[1]<<14|size[2]<<7|size[3];
 	fseek(sndFile, hdrsize+10, SEEK_SET);
-
-
 }
+
 int mp3_openFile(char * name) {
 	if((sndFile = fopen(name, "rb"))) {
 		char magic[3];
@@ -79,7 +78,7 @@ mm_word mp3_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 				}
 			}
 		}
-		
+
 		/* check for errors */
 		if((ret = MP3Decode(mdecoder, &readOff, &dataLeft, dest,0))) {
 			iprintf("HELIX MP3 ERROR: %d\n", ret);

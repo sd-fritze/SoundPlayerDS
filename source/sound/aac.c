@@ -8,8 +8,8 @@
 #include <nds.h>
 #include <helix/aacdec.h>
 #include <helix/aaccommon.h>
+#include <mp4ff.h>
 #include "aac.h"
-#include "soundPlayer.h"
 #include "decoder_common.h"
 
 /* Helix variabelen*/
@@ -155,7 +155,7 @@ mm_word aac_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 		if(dataLeft < AAC_MAINBUF_SIZE)
 			ret = fill_readBuffer(readBuffer, &readOff, AAC_MAINBUF_SIZE, &dataLeft);
 
-		if(dataLeft != AAC_MAINBUF_SIZE && dataLeft == 0) {
+		if(dataLeft < AAC_MAINBUF_SIZE) {
 			/* No more to read, still able to decode something more */
 			if(feof(sndFile) && !Endof)
 				Endof = MM_BUFFER_SIZE;

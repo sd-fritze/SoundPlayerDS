@@ -18,12 +18,10 @@ include $(DEVKITARM)/ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(shell basename $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source 
-INCLUDES	:=	include
+SOURCES		:=	source source/sound
+INCLUDES	:=	include include/sound
 DATA		:=	data  
-GRAPHICS	:=	gfx
-NITRODATA	:=	nitrofiles
-  
+GRAPHICS	:=	gfx  
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -67,10 +65,6 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-
-ifneq ($(strip $(NITRODATA)),)
-	export NITRO_FILES	:=	$(CURDIR)/$(NITRODATA)
-endif
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))

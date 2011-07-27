@@ -1,9 +1,13 @@
-#ifndef DECODER_H
-#define DECODER_H
+#ifndef SOUND_PLAYER_H
+#define SOUND_PLAYER_H
 
 #include <nds.h>
 #include <maxmod9.h>
 #include <stdio.h>
+
+#include "vbis.h"
+#include "aac.h"
+#include "mp3.h"
 
 #define FILE_ERROR 1
 #define MAX_VOLUME 127
@@ -32,4 +36,4 @@ void InitMaxmod(void);
 void startStream(MUSIC * m, char * name, int bufferlength);
 void visualizeBuffer(s16 * buffer);
 
-#endif
+#endif /* SOUND_PLAYER_H */

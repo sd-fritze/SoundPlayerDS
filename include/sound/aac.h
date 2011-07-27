@@ -1,8 +1,7 @@
-#ifndef T_MP4
-#define T_MP4
+#ifndef AAC_H
+#define AAC_H
 
 #include <nds.h>
-#include <mp4ff.h>
 #include "soundPlayer.h"
 
 #define MP4_TRACK_AUDIO 1
@@ -19,4 +18,4 @@ void aac_freeDecoder(void);
 mm_word mp4_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats format );
 mm_word aac_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats format );
 
-#endif
+#endif /* AAC_H */

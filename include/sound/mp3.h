@@ -2,10 +2,8 @@
 #define MP3_H
 
 #include <nds.h>
-#include <helix/mp3dec.h>
-
 #include "soundPlayer.h"
-#include "f_browse.h"
+
 
 int mp3_openFile(char * name);
 int mp3_get_sampleRate(void);

@@ -1,3 +1,4 @@
+#include <tremor/ivorbisfile.h>
 #include "vbis.h"
 
 OggVorbis_File vf;
@@ -42,10 +43,10 @@ mm_word vbis_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats 
 			return 0;
 		}
 		tlength -= ret/(vi->channels*2);
-		target +=ret/2;		// we increase a s16 pointer so half the byte size
+		target +=ret/2; // we increase a s16 pointer so half the byte size
 	}
 	visualizeBuffer(dest);
-	return length;	/* Return how many samples are decoded */
+	return length; /* Return how many samples are decoded */
 }
 
 void vbis_freeDecoder(void) {

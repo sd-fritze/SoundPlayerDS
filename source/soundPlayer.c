@@ -1,8 +1,9 @@
 #include <nds.h>
 #include <maxmod9.h>
 #include <stdio.h>
-#include "soundPlayer.h"
-#include "f_browse.h"
+#include "sound/SoundPlayer.h"
+#include "Filebrowser.h"
+#include "Graphics.h"
 
 FILE * sndFile;
 bool needsClosing;
@@ -11,7 +12,6 @@ unsigned char * readOff;
 int dataLeft;
 short Endof; // samples to endof
 
-// fast fourier transformation
 void InitMaxmod(void) {
 	mm_ds_system sys;
 	sys.mod_count 			= 0;
@@ -44,22 +44,17 @@ void startStream(MUSIC * m, char * name, int bufferlength) {
 		playing = false;
 	}
 }
-/*
- * Todo: adjust for mono, this one is only correct for stereo
- */
+
 void visualizeBuffer(s16 * buffer) {
+	glBegin( GL_TRIANGLE_STRIP);
+	glBindTexture( 0, 0 );
 
-	glBegin(GL_TRIANGLE_STRIP);
-	glColor3b(0,0,255);
-
-	int i, x = inttov16(-1);
-	/* Display 64 samples */
-	for(i=0; i<63; i++, buffer++) {
-		glVertex3v16(x,((buffer[0]+buffer[1])>>4),0); // /2 and >>3 to make it fit in v16
-		x+= 64;
-		glVertex3v16(x, ((buffer[2]+buffer[3])>>4), 0);
-		glVertex3v16(x, ((buffer[2]+buffer[3])>>4), 0);
-		x+= 64;
+	int i;
+	for(i = 0; i<64; i++) {
+		// pick a "random" color
+		glColor3b(0, *buffer&0xff, *buffer>>8);
+		drawLine(i*4, (*buffer>>8)+96, i*4+4, (buffer[2]>>8)+96);
+		buffer++;
 	}
-	glEnd();
+	glColor3b(255,255,255);
 }

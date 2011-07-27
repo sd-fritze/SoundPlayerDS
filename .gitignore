@@ -12,3 +12,4 @@
 *.project
 *.tags
 *.workspace
+/build/*

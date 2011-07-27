@@ -13,3 +13,10 @@ Make targets:
  all:     Builds sound libraries and NDS executable
  clean:   Removes everything in 'build' directory and the resulting NDS and ELF files
  clobber: Same as clean, but additionally performs 'make clean' on sound libraries
+
+Todo:
+
+ - Improve GUI
+ - Add seeking 
+ - Add pause
+ - Add other formats (.flac etc.)
