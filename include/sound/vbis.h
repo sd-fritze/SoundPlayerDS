@@ -2,7 +2,7 @@
 #define VBIS_H
 
 #include <nds.h>
-#include "soundPlayer.h"
+#include "SoundPlayer.h"
 
 int	vbis_openFile(char * name);
 int	vbis_get_sampleRate(void);

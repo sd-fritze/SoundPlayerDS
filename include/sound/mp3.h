@@ -2,7 +2,7 @@
 #define MP3_H
 
 #include <nds.h>
-#include "soundPlayer.h"
+#include "SoundPlayer.h"
 
 
 int mp3_openFile(char * name);

@@ -2,7 +2,7 @@
 #include <helix/mp3common.h>
 #include "mp3.h"
 #include "decoder_common.h"
-#include "soundPlayer.h"
+#include "SoundPlayer.h"
 
 #define IS_ID3_V2(p)		((p)[0] == 'I' && (p)[1] == 'D' && (p)[2] == '3')
 HMP3Decoder * mdecoder;

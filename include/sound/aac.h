@@ -2,7 +2,7 @@
 #define AAC_H
 
 #include <nds.h>
-#include "soundPlayer.h"
+#include "SoundPlayer.h"
 
 #define MP4_TRACK_AUDIO 1
 

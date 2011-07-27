@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "decoder_common.h"
-#include "soundPlayer.h"
+#include "SoundPlayer.h"
 
 int fill_readBuffer(u8 * buffer, u8 ** offset, int bufSize, int * left) {
 	/* Move chunk at end to start */
