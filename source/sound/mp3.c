@@ -8,19 +8,52 @@
 HMP3Decoder * mdecoder;
 MP3FrameInfo inf;
 
+int findValidSync(unsigned char ** offset, int * bytes) {
+	
+	int ret;
+	while(UnpackFrameHeader((MP3DecInfo *)mdecoder, *offset)<0) {
+		// search for another syncword
+	findsync:
+		*offset +=2;
+		*bytes -=2;
+		// we did enough this mp3 is likely corrupt
+		if((ret=MP3FindSyncWord(*offset, *bytes))<0) {
+			return -1;
+		}
+		*offset += ret;
+		*bytes -=ret;
+	}
+	// eh we're decoding mp3, get back!
+	if(((MP3DecInfo *)mdecoder)->layer!=3)
+		goto findsync;
+	return 0;
+}
+
 void parseID3_V2(FILE * fp) {
 	rewind(fp);
 	/* Jump to the sync save size field (4 bytes, where bit 7 is left unused
 	 * to avoid finding keywords (which need to have that bit set)
 	 */
 	fseek(fp, 6, SEEK_SET);
-	char size[4];
-	fread(&size, 1, 4, fp);
-	int hdrsize =  size[0]<<21|size[1]<<14|size[2]<<7|size[3];
+	char temp[4];
+	fread(&temp, 1, 4, fp);
+	int hdrsize =  temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3];
 	fseek(sndFile, hdrsize+10, SEEK_SET);
+	fread(&temp, 1, 3, fp);
+	// some mp3's appear to have double headers
+	if(IS_ID3_V2(temp)) {
+
+		fseek(fp, hdrsize+16, SEEK_SET);
+		fread(&temp, 1, 4, fp);
+		hdrsize +=  temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3];
+		fseek(sndFile, hdrsize+20, SEEK_SET);
+	} else {
+		fseek(sndFile, hdrsize+10, SEEK_SET);
+	}
 }
 
 int mp3_openFile(char * name) {
+	memset(&inf, 0, sizeof(inf));
 	if((sndFile = fopen(name, "rb"))) {
 		char magic[3];
 		fread(&magic, 1, 3, sndFile);
@@ -29,16 +62,11 @@ int mp3_openFile(char * name) {
 		}
 		if((fill_readBuffer(readBuffer, &readOff, READ_BUF_SIZE, &dataLeft))==READ_BUF_SIZE) {
 			mdecoder = MP3InitDecoder();
-			readOff = readBuffer;
-			dataLeft = READ_BUF_SIZE;
-			/* MP3 frame header (4 bytes, plus 2 if CRC)
-			* not using the decode function as that function may try to clear the buffer
-			* and so overwrite other data
-			*/
-			UnpackFrameHeader((MP3DecInfo *)mdecoder, readOff);
-			/* Get info for mm stream init */
-			MP3GetLastFrameInfo(mdecoder, &inf);
-			return 0;
+			if(!findValidSync(&readOff, &dataLeft)) {
+				/* Get info for mm stream init */
+				MP3GetLastFrameInfo(mdecoder, &inf);
+				return 0;
+			}
 		}
 	}
 	return -1;
@@ -81,18 +109,24 @@ mm_word mp3_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 
 		/* check for errors */
 		if((ret = MP3Decode(mdecoder, &readOff, &dataLeft, dest,0))) {
-			iprintf("HELIX MP3 ERROR: %d\n", ret);
-			needsClosing = true;
-			return 0;
+			switch(ret) {
+			case ERR_MP3_INDATA_UNDERFLOW :
+			case ERR_MP3_MAINDATA_UNDERFLOW:
+				return 0;
+			case ERR_MP3_INVALID_FRAMEHEADER:
+				findValidSync(&readOff, &dataLeft);
+				return 0;
+			default:
+				iprintf("HELIX MP3 ERROR: %d\n", ret);
+				needsClosing = true;
+				return 0;
+			}
 		}
 		/* GCC can't know channels being only 1 or 2 */
 		samps = inf.outputSamps >> (inf.nChans-1);
 		dest+=	inf.outputSamps;
 		length -=samps;
 	}
-
 	visualizeBuffer(dest);
-
 	return samps;
-
 }
