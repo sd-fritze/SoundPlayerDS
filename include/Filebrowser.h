@@ -10,10 +10,10 @@
 
 extern int y;
 extern bool playing;
-extern MUSIC musik;
 extern u32 * dirDispList, fileDispList;
 extern int IconsTextID;
 void updateBrowser(void);
 void openSelected(int selected);
+u32 get_fileSize(FILE * fp);
 
 #endif /* F_BROWSER_H */

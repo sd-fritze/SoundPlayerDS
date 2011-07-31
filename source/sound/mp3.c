@@ -1,19 +1,29 @@
+/*
+ * Sources:
+ * http://www.codeproject.com/KB/audio-video/mpegaudioinfo.aspx
+ */
+ 
 #include <helix/mp3dec.h>
 #include <helix/mp3common.h>
 #include "mp3.h"
 #include "decoder_common.h"
-#include "SoundPlayer.h"
+#include "Filebrowser.h"	// needed to retrieve filesize
 
 #define IS_ID3_V2(p)		((p)[0] == 'I' && (p)[1] == 'D' && (p)[2] == '3')
+#define ID3_HDR_SIZE 10
 HMP3Decoder * mdecoder;
 MP3FrameInfo inf;
 
+u32 firstFrame;	// offset in file of first frameheader
+u32 fileSize;
+u32 bitrate;
+
 int findValidSync(unsigned char ** offset, int * bytes) {
-	
+
 	int ret;
 	while(UnpackFrameHeader((MP3DecInfo *)mdecoder, *offset)<0) {
 		// search for another syncword
-	findsync:
+findsync:
 		*offset +=2;
 		*bytes -=2;
 		// we did enough this mp3 is likely corrupt
@@ -26,6 +36,7 @@ int findValidSync(unsigned char ** offset, int * bytes) {
 	// eh we're decoding mp3, get back!
 	if(((MP3DecInfo *)mdecoder)->layer!=3)
 		goto findsync;
+
 	return 0;
 }
 
@@ -37,24 +48,25 @@ void parseID3_V2(FILE * fp) {
 	fseek(fp, 6, SEEK_SET);
 	char temp[4];
 	fread(&temp, 1, 4, fp);
-	int hdrsize =  temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3];
-	fseek(sndFile, hdrsize+10, SEEK_SET);
+	// extract header size to skip it
+	firstFrame =  (temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3])+ID3_HDR_SIZE;
+	fseek(sndFile, firstFrame, SEEK_SET);
 	fread(&temp, 1, 3, fp);
 	// some mp3's appear to have double headers
 	if(IS_ID3_V2(temp)) {
-
-		fseek(fp, hdrsize+16, SEEK_SET);
+		// get to the size field again
+		fseek(fp, firstFrame+6, SEEK_SET);
 		fread(&temp, 1, 4, fp);
-		hdrsize +=  temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3];
-		fseek(sndFile, hdrsize+20, SEEK_SET);
-	} else {
-		fseek(sndFile, hdrsize+10, SEEK_SET);
+		firstFrame +=  (temp[0]<<21|temp[1]<<14|temp[2]<<7|temp[3])+ID3_HDR_SIZE;
 	}
+	fseek(sndFile, firstFrame, SEEK_SET);
+	fileSize -= firstFrame;
 }
 
 int mp3_openFile(char * name) {
 	memset(&inf, 0, sizeof(inf));
 	if((sndFile = fopen(name, "rb"))) {
+		fileSize = get_fileSize(sndFile);
 		char magic[3];
 		fread(&magic, 1, 3, sndFile);
 		if(IS_ID3_V2(magic)) {
@@ -65,6 +77,8 @@ int mp3_openFile(char * name) {
 			if(!findValidSync(&readOff, &dataLeft)) {
 				/* Get info for mm stream init */
 				MP3GetLastFrameInfo(mdecoder, &inf);
+				bitrate = inf.bitrate;
+				iprintf("duration %d\n", (fileSize)*8/bitrate);
 				return 0;
 			}
 		}
@@ -78,6 +92,27 @@ int mp3_get_sampleRate(void) {
 int mp3_get_nChannels(void) {
 	return inf.nChans;
 }
+int mp3_seek_percentage(int perc) {
+	fseek(sndFile, (fileSize / 100)*perc + firstFrame, SEEK_SET);
+	dataLeft = 0;
+	/* we read max amount of data for one frame, so this should be enough
+	 * to find at least one syncword, the streaming routine may then fill
+	 * the buffer more when there's an underflow
+	 */
+	fill_readBuffer(readBuffer, &readOff, READ_BUF_SIZE, &dataLeft);
+	// free decoder to prevent crashing
+	MP3FreeDecoder(mdecoder);
+	mdecoder = MP3InitDecoder();
+	findValidSync(&readOff, &dataLeft);
+	return 1;
+}
+
+int mp3_get_percentage() {
+	u32 current = ftell(sndFile);
+	current -= firstFrame;
+	return ((current*16)/(fileSize/100));
+}
+
 void mp3_freeDecoder(void) {
 	memset(&readBuffer[0], 0, READ_BUF_SIZE);
 	MP3FreeDecoder(mdecoder);
@@ -117,7 +152,7 @@ mm_word mp3_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 				findValidSync(&readOff, &dataLeft);
 				return 0;
 			default:
-				iprintf("HELIX MP3 ERROR: %d\n", ret);
+				iprintf("HELIX MP3 ERROR: %d", ret);
 				needsClosing = true;
 				return 0;
 			}
@@ -128,5 +163,6 @@ mm_word mp3_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats f
 		length -=samps;
 	}
 	visualizeBuffer(dest);
+
 	return samps;
 }

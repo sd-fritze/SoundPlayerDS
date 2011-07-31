@@ -10,11 +10,10 @@
 
 int main(int argc, char ** argv) {
 
-	consoleDemoInit();
 	fatInitDefault();
 	InitMaxmod();
 	initGui();
-
+	
 	while(1) {
 
 		scanKeys();
@@ -23,16 +22,12 @@ int main(int argc, char ** argv) {
 
 		if(playing) {
 			mmStreamUpdate();
-
+			updateProgress(&musik);
 			if(needsClosing) {
 				needsClosing = false;
-				musik.free_decoder();
-				mmStreamClose();
-				playing = false;
-
+				closeDecoder();
 			}
 		}
-
 		glFlush(0);
 		swiWaitForVBlank();
 	}

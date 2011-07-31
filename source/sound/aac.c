@@ -104,6 +104,19 @@ int aac_get_nChannels(void) {
 	return inf.nChans;
 }
 
+int aac_get_percentage(void){
+	return 0;
+}
+int aac_seek_percentage(int perc){
+	return 0;
+}
+
+int m4a_get_percentage(void){
+	return 0;
+}
+int m4a_seek_percentage(int perc){
+	return 0;
+}
 void aac_freeDecoder(void) {
 	dataLeft = 0;
 	Endof = 0;

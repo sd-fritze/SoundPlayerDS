@@ -15,7 +15,6 @@ static int cursor;
 static struct dirent **dirList;
 int random;
 bool playing = false;
-MUSIC musik;
 char CWD[1024];
 char filename[1024];
 
@@ -120,7 +119,7 @@ void updateBrowser(void) {
 	}
 
 	keys = keysDown();
-	if(keys & (KEY_A|KEY_B|KEY_X|KEY_Y) || random) {
+	if(keys & (KEY_A|KEY_B|KEY_X|KEY_Y|KEY_DOWN) || random) {
 
 		if(keys & KEY_X) {
 			powerOff(  PM_BACKLIGHT_BOTTOM|PM_BACKLIGHT_TOP);
@@ -134,6 +133,9 @@ void updateBrowser(void) {
 			while(cursor == old)
 				cursor = rand() % entries;
 		}
+		if(keys & KEY_DOWN)
+			mp3_seek_percentage(50);
+			
 		//select entry at cursor
 		if(keys & KEY_A || (random && !playing)) {
 			openSelected(cursor);
@@ -142,9 +144,7 @@ void updateBrowser(void) {
 		if(keys & KEY_B) {
 			random = 0;
 			if(playing) {
-				musik.free_decoder();
-				mmStreamClose();
-				playing = false;
+				closeDecoder();
 			}
 		}
 	}
@@ -183,44 +183,37 @@ void openSelected(int selected) {
 
 		//stop playing current previous selection
 		if(playing) {
-			musik.free_decoder();
+			musik.dec->free_decoder();
 			mmStreamClose();
 		}
 
-		//play m4a file
-		if(strstr(dirList[selected]->d_name, ".m4a") || strstr(dirList[selected]->d_name, ".M4A")) {
-			musik.open_file        = mp4_openFile;
-			musik.get_sampleRate   = aac_get_sampleRate;
-			musik.get_nChannels    = aac_get_nChannels;
-			musik.free_decoder     = aac_freeDecoder;
-			musik.mstream.callback = mp4_on_stream_request;
-		}
-		//play aac file
-		else if(strstr(dirList[selected]->d_name, ".aac") || strstr(dirList[selected]->d_name, ".AAC")) {
-			musik.open_file        = aac_openFile;
-			musik.get_sampleRate   = aac_get_sampleRate;
-			musik.get_nChannels    = aac_get_nChannels;
-			musik.free_decoder     = aac_freeDecoder;
-			musik.mstream.callback = aac_on_stream_request;
-		} else if(strstr(dirList[selected]->d_name, ".ogg") || strstr(dirList[selected]->d_name, ".OGG")) {
-			musik.open_file        = vbis_openFile;
-			musik.get_sampleRate   = vbis_get_sampleRate;
-			musik.get_nChannels    = vbis_get_nChannels;
-			musik.free_decoder     = vbis_freeDecoder;
-			musik.mstream.callback = vbis_on_stream_request;
-		} else if(strstr(dirList[selected]->d_name, ".mp3") || strstr(dirList[selected]->d_name, ".MP3")) {
-			musik.open_file        = mp3_openFile;
-			musik.get_sampleRate   = mp3_get_sampleRate;
-			musik.get_nChannels    = mp3_get_nChannels;
-			musik.free_decoder     = mp3_freeDecoder;
-			musik.mstream.callback = mp3_on_stream_request;
-		} else
-			musik.open_file = NULL;
+		if(strstr(dirList[selected]->d_name, ".m4a") || strstr(dirList[selected]->d_name, ".M4A"))
+			musik.dec = &m4a_dec;
+		else if(strstr(dirList[selected]->d_name, ".aac") || strstr(dirList[selected]->d_name, ".AAC"))
+			musik.dec = &aac_dec;
+		else if(strstr(dirList[selected]->d_name, ".ogg") || strstr(dirList[selected]->d_name, ".OGG"))
+			musik.dec = &vbis_dec;
+		else if(strstr(dirList[selected]->d_name, ".mp3") || strstr(dirList[selected]->d_name, ".MP3"))
+			musik.dec = &mp3_dec;
+		else
+			musik.dec = NULL;
 
-		if(musik.open_file != NULL) {
+		if(musik.dec != NULL) {
 			startStream(&musik, filename, MM_BUFFER_SIZE);
 			playing = true;
+			lcdMainOnTop();
 		} else
 			playing = false;
 	}
+}
+
+/*
+ * Can even be used when position in the stream may not change to the end
+ */
+u32 get_fileSize(FILE * fp){
+	u32 offset = ftell(fp);
+	fseek(fp, 0, SEEK_END);
+	u32 size = ftell(fp);
+	fseek(fp, offset, SEEK_SET);
+	return size;
 }

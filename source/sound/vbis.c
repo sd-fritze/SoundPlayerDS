@@ -26,6 +26,15 @@ int vbis_get_sampleRate(void) {
 int vbis_get_nChannels(void) {
 	return vi->channels;
 }
+int vbis_get_percentage(void){
+	return (int)((ov_time_tell(&vf)*16)/(ov_time_total(&vf, -1)/100));
+}
+int vbis_seek_percentage(int perc){
+	int ret = ov_time_seek(&vf,perc*(ov_time_total(&vf, -1)/100));
+	if(ret == 0)
+		return 0;
+	return -1;
+}
 mm_word vbis_on_stream_request( mm_word length, mm_addr dest, mm_stream_formats format ) {
 
 	s16 *target = dest;

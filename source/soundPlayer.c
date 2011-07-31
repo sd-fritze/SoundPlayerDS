@@ -4,8 +4,10 @@
 #include "sound/SoundPlayer.h"
 #include "Filebrowser.h"
 #include "Graphics.h"
+#include "Gui.h"
 
 FILE * sndFile;
+MUSIC musik;
 bool needsClosing;
 unsigned char readBuffer[READ_BUF_SIZE];
 unsigned char * readOff;
@@ -25,22 +27,25 @@ void InitMaxmod(void) {
  * Note only use when m has it's decoder callbacks set, otherwhise it will fail
  */
 void startStream(MUSIC * m, char * name, int bufferlength) {
-	if(m->open_file(name) == 0) {
-		if(m->get_nChannels()<3) {
-			m->mstream.format = ( m->get_nChannels() < 2? MM_STREAM_16BIT_MONO : MM_STREAM_16BIT_STEREO);
-			m->mstream.sampling_rate = m->get_sampleRate();
+	if(m->dec->open_file(name) == 0) {
+		if(m->dec->get_nChannels()<3) {
+			m->mstream.format = ( m->dec->get_nChannels() < 2? MM_STREAM_16BIT_MONO : MM_STREAM_16BIT_STEREO);
+			m->mstream.sampling_rate = m->dec->get_sampleRate();
 			m->mstream.buffer_length = bufferlength;// buffer length
 			m->mstream.timer	= MM_TIMER0;		// use hardware timer 0
 			m->mstream.manual	= true;				// use manual filling
+			m->mstream.callback = (m->dec->callback);
 			mmStreamOpen(&m->mstream);
+			bgShow(bg2d);
 		} else {
 			iprintf("Channelcount too high!\n");
+			needsClosing = true;
 		}
 	}
 	/* be sure to reset everything */
 	else {
 		iprintf("Failed to play %s\n", name);
-		m->free_decoder();
+		m->dec->free_decoder();
 		playing = false;
 	}
 }
